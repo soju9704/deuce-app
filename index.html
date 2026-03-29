@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deuce — 테니스 코치 매칭</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1a6b4a;--green-light:#e8f5ee;
+  --court:#2a7a52;--court2:#246844;
+  --sand:#f5f0e8;--text:#1a1a1a;--text2:#555;--text3:#888;
+  --white:#fff;--border:#e0d8cc;
+  --radius:16px;--radius-sm:10px;
+}
+body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--sand);color:var(--text);min-height:100vh;font-size:14px}
+.header{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:30px;height:30px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-text{font-family:'DM Serif Display',serif;font-size:19px;color:var(--green)}
+.nav{display:flex;gap:4px}
+.nav-btn{padding:5px 13px;border-radius:20px;border:none;font-family:inherit;font-size:12px;cursor:pointer;background:transparent;color:var(--text2)}
+.nav-btn.active{background:var(--green);color:#fff}
+.lang-row{display:flex;gap:3px}
+.lang-btn{padding:3px 8px;border-radius:6px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:transparent;color:var(--text3);font-family:inherit}
+.lang-btn.active{background:var(--green-light);color:var(--green);border-color:var(--green)}
+.ad-zone{margin:12px 14px 0;position:relative}
+.ad-label{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.35);color:rgba(255,255,255,.85);font-size:9px;padding:2px 6px;border-radius:6px;z-index:2}
+.banner-slider{border-radius:var(--radius);overflow:hidden;height:114px}
+.banner-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.banner-slide{min-width:100%;height:100%;position:relative;display:flex;align-items:center;padding:18px 20px;cursor:pointer}
+.bs-1{background:linear-gradient(120deg,#0f4c81,#1a7abf)}.bs-2{background:linear-gradient(120deg,#7b2d00,#c94a00)}.bs-3{background:linear-gradient(120deg,#1a4d2e,#2d8c52)}.bs-4{background:linear-gradient(120deg,#4a1080,#8a3abf)}
+.bd{position:absolute;right:-10px;top:-10px;width:120px;height:120px;border-radius:50%;opacity:.12;background:#fff}
+.bd2{position:absolute;right:40px;bottom:-30px;width:80px;height:80px;border-radius:50%;opacity:.08;background:#fff}
+.b-icon{font-size:36px;margin-right:14px;flex-shrink:0;position:relative;z-index:1}
+.b-text{position:relative;z-index:1}
+.b-tag{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:9px;padding:2px 7px;border-radius:10px;margin-bottom:4px}
+.b-title{font-size:15px;font-weight:600;color:#fff;line-height:1.3;margin-bottom:3px}
+.b-sub{font-size:11px;color:rgba(255,255,255,.75)}
+.b-cta{display:inline-block;margin-top:6px;background:#fff;color:var(--text);font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px}
+.banner-dots{display:flex;justify-content:center;gap:5px;margin-top:8px}
+.banner-dot{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .3s;cursor:pointer}
+.banner-dot.on{width:14px;border-radius:3px;background:var(--green)}
+.search-wrap{background:var(--white);margin:12px 14px 0;border-radius:var(--radius);padding:14px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.search-title{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}
+.region-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.fi label{display:block;font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase}
+.fi select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--sand);color:var(--text);outline:none}
+.fi select:disabled{opacity:.4}
+.chip-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;margin-bottom:5px}
+.chip-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:5px 11px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--white);color:var(--text2);transition:all .15s;font-family:inherit}
+.chip.on{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-search{width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px}
+.section-label{padding:0 14px;margin:14px 0 8px;display:flex;justify-content:space-between;align-items:center}
+.section-label h3{font-family:'DM Serif Display',serif;font-size:19px}
+.section-label span{font-size:12px;color:var(--green);font-weight:500}
+.coaches-list{padding:0 14px;display:flex;flex-direction:column;gap:10px;margin-bottom:80px}
+.coach-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.coach-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.card-top{display:flex;gap:12px;padding:14px}
+.avatar{width:56px;height:56px;border-radius:12px;background:var(--green-light);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--green);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.coach-info{flex:1;min-width:0}
+.coach-name-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap}
+.coach-name{font-size:15px;font-weight:600}
+.verified-badge{background:var(--green);color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:500}
+.coach-loc{font-size:11px;color:var(--text3);margin-bottom:3px}
+.rating-row{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
+.stars{color:#f0b429;font-size:11px}
+.lesson-pills{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.lp{padding:2px 8px;border-radius:8px;font-size:10px;font-weight:500}
+.lp-h{background:#e8f0fe;color:#3b5bdb}.lp-f{background:#fff4e6;color:#e67700}
+.card-bottom{padding:9px 14px;border-top:1px solid var(--border);background:var(--sand)}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.spec-tag{padding:2px 8px;background:var(--green-light);color:var(--green);border-radius:8px;font-size:10px;font-weight:500}
+.skill-tag{padding:2px 8px;background:#f0f4ff;color:#4263eb;border-radius:8px;font-size:10px;font-weight:500}
+.price-row{display:flex;gap:10px;flex-wrap:wrap}
+.price-item{display:flex;align-items:center;gap:4px;font-size:12px}
+.pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pdot-h{background:#3b5bdb}.pdot-f{background:#e67700}
+.pval{font-weight:600;color:var(--green)}.plbl{color:var(--text3);font-size:10px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;padding:8px 0 12px}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:10px;color:var(--text3);padding:4px 0}
+.bnav-btn.active{color:var(--green)}.bnav-icon{font-size:19px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:18px;position:relative}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-avatar{width:80px;height:80px;border-radius:14px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--green);margin-bottom:10px;overflow:hidden}
+.modal-avatar img{width:100%;height:100%;object-fit:cover}
+.modal-name{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:2px}
+.modal-loc{font-size:12px;color:var(--text3);margin-bottom:12px}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.mstat{background:var(--sand);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.mstat .n{font-size:16px;font-weight:600;color:var(--green)}.mstat .l{font-size:10px;color:var(--text3);margin-top:2px}
+.msec{margin-bottom:13px}
+.msec h4{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.msec p{font-size:13px;color:var(--text2);line-height:1.6}
+.tag-row{display:flex;gap:5px;flex-wrap:wrap}
+.divider{height:.5px;background:var(--border);margin:10px 0}
+.close-btn{position:absolute;top:18px;right:18px;background:var(--sand);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.btn-book{width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px}
+.mprice-box{background:var(--sand);border-radius:var(--radius-sm);padding:12px;display:flex;flex-direction:column;gap:8px}
+.mprice-row{display:flex;align-items:center;justify-content:space-between}
+.mprice-lbl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+.mprice-val{font-size:17px;font-weight:600;color:var(--green)}
+.modal-video a{color:var(--green);font-size:13px;text-decoration:none;display:block;margin-bottom:4px}
+
+/* REGISTER */
+.reg-page{display:none;padding:14px;margin-bottom:80px}
+.reg-page.show{display:block}
+.reg-section{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border)}
+.reg-section h3{font-size:13px;font-weight:600;margin-bottom:4px}
+.sec-desc{font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5}
+.form-row{margin-bottom:10px}
+.form-row label{display:block;font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px;text-transform:uppercase}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--sand);color:var(--text);outline:none}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--green);background:var(--white)}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form-hint{font-size:10px;color:var(--text3);margin-top:4px;line-height:1.5;display:block}
+.form-example{background:var(--sand);border-radius:8px;padding:8px 10px;margin-top:6px;font-size:11px;color:var(--text2);line-height:1.7;border-left:3px solid var(--green)}
+.form-example b{color:var(--green)}
+
+/* 가격 입력 */
+.price-input-wrap{position:relative}
+.price-input-wrap input{padding-right:32px}
+.price-unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none}
+.price-display{font-size:11px;color:var(--green);margin-top:4px;font-weight:500;min-height:16px}
+
+/* 레슨 옵션 */
+.lesson-opt{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:8px;transition:all .15s}
+.lesson-opt.on{border-color:var(--green);background:var(--green-light)}
+.lo-t{font-size:13px;font-weight:600;margin-bottom:2px}
+.lo-d{font-size:11px;color:var(--text3);line-height:1.5}
+.lesson-price-input{margin-top:8px;display:none}
+.lesson-opt.on .lesson-price-input{display:block}
+
+/* 요일 선택 */
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}
+.day-btn{padding:7px 2px;border-radius:8px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--white);color:var(--text2);text-align:center;font-family:inherit;transition:all .15s}
+.day-btn.on{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* 시간대 선택 */
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.time-btn{padding:8px 6px;border-radius:8px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:var(--white);color:var(--text2);text-align:center;font-family:inherit;transition:all .15s;line-height:1.4}
+.time-btn.on{background:var(--green);color:#fff;border-color:var(--green)}
+.t-name{font-weight:600;display:block;margin-bottom:1px}
+.t-range{font-size:10px;opacity:.8}
+
+/* 미디어 */
+.media-tabs{display:flex;gap:4px;margin-bottom:8px}
+.media-tab{padding:5px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--white);color:var(--text2);font-family:inherit}
+.media-tab.on{background:var(--green);color:#fff;border-color:var(--green)}
+.media-panel{display:none}.media-panel.on{display:block}
+.upload-box{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:18px;text-align:center;cursor:pointer;color:var(--text3);font-size:13px;transition:all .15s}
+.upload-box:hover{border-color:var(--green);color:var(--green)}
+.upload-box input{display:none}
+.preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.preview-item{aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative}
+.preview-item img{width:100%;height:100%;object-fit:cover}
+.preview-remove{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer}
+.link-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.link-row input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:12px;background:var(--sand);outline:none}
+.link-row input:focus{border-color:var(--green);background:var(--white)}
+.link-add-btn{padding:8px 12px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.link-remove-btn{padding:6px 8px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;color:var(--text3)}
+.intro-hint{background:var(--sand);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.btn-submit{width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:4px}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.no-results{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.toast{display:none;position:fixed;top:62px;left:14px;right:14px;color:#fff;padding:13px 16px;border-radius:12px;z-index:300;font-size:13px;text-align:center}
+.toast.show{display:block}
+.toast.success{background:var(--green)}.toast.error{background:#c0392b}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"><div class="logo-icon">🎾</div><span class="logo-text">Deuce</span></div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPage('coaches');setNav(this)">찾기</button>
+    <button class="nav-btn" onclick="showPage('register');setNav(this)">코치등록</button>
+  </div>
+  <div class="lang-row">
+    <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+    <button class="lang-btn active" onclick="setLang('ko',this)">한글</button>
+  </div>
+</div>
+
+<!-- 코치 찾기 -->
+<div id="coaches-page">
+  <div class="ad-zone">
+    <span class="ad-label">AD</span>
+    <div class="banner-slider">
+      <div class="banner-track" id="bt">
+        <div class="banner-slide bs-1"><div class="bd"></div><div class="bd2"></div><div class="b-icon">🎾</div><div class="b-text"><div class="b-tag">TENNIS SHOP</div><div class="b-title">스매시 스포츠<br>라켓 최대 30% 할인</div><div class="b-sub">Wilson · Babolat · Head 전 라인</div><div class="b-cta">지금 보기 →</div></div></div>
+        <div class="banner-slide bs-2"><div class="bd"></div><div class="bd2"></div><div class="b-icon">🏟️</div><div class="b-text"><div class="b-tag">TENNIS COURT</div><div class="b-title">강남 프리미엄<br>테니스 클럽</div><div class="b-sub">실내 8면 · 주차 무료 · 샤워실 완비</div><div class="b-cta">코트 예약 →</div></div></div>
+        <div class="banner-slide bs-3"><div class="bd"></div><div class="bd2"></div><div class="b-icon">👟</div><div class="b-text"><div class="b-tag">TENNIS WEAR</div><div class="b-title">나이키 테니스<br>신상 컬렉션 입고</div><div class="b-sub">코트화 · 의류 · 가방 전 품목</div><div class="b-cta">컬렉션 보기 →</div></div></div>
+        <div class="banner-slide bs-4"><div class="bd"></div><div class="bd2"></div><div class="b-icon">🏆</div><div class="b-text"><div class="b-tag">ACADEMY</div><div class="b-title">서울 엘리트<br>테니스 아카데미</div><div class="b-sub">신규 회원 모집 · 체험 레슨 무료</div><div class="b-cta">신청하기 →</div></div></div>
+      </div>
+    </div>
+    <div class="banner-dots">
+      <div class="banner-dot on" onclick="goSlide(0)"></div>
+      <div class="banner-dot" onclick="goSlide(1)"></div>
+      <div class="banner-dot" onclick="goSlide(2)"></div>
+      <div class="banner-dot" onclick="goSlide(3)"></div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-title">코치 검색</div>
+    <div class="region-row">
+      <div class="fi"><label>광역시/도</label>
+        <select id="f-region" onchange="onRegionChange()">
+          <option value="">전체</option>
+          <option>서울</option><option>경기도</option><option>인천</option><option>강원도</option><option>경상남도</option><option>경상북도</option><option>충청남도</option><option>충청북도</option><option>전라남도</option><option>전라북도</option><option>제주도</option>
+        </select>
+      </div>
+      <div class="fi"><label>시/구</label>
+        <select id="f-sub" onchange="filterCoaches()" disabled><option value="">전체</option></select>
+      </div>
+    </div>
+    <div class="fi" style="margin-bottom:10px"><label>정렬</label>
+      <select id="f-sort" onchange="filterCoaches()">
+        <option value="rating">평점 높은 순</option><option value="price-low">요금 낮은 순</option><option value="price-high">요금 높은 순</option><option value="exp">경력 순</option>
+      </select>
+    </div>
+    <div class="chip-label">수준</div>
+    <div class="chip-row" id="lf">
+      <div class="chip on" onclick="tc(this,'level','')">전체</div><div class="chip" onclick="tc(this,'level','초급')">초급</div><div class="chip" onclick="tc(this,'level','중급')">중급</div><div class="chip" onclick="tc(this,'level','고급')">고급</div><div class="chip" onclick="tc(this,'level','주니어')">주니어</div><div class="chip" onclick="tc(this,'level','시니어')">시니어</div>
+    </div>
+    <div class="chip-label">전문 스킬</div>
+    <div class="chip-row" id="sf">
+      <div class="chip on" onclick="tc(this,'skill','')">전체</div><div class="chip" onclick="tc(this,'skill','포핸드')">포핸드</div><div class="chip" onclick="tc(this,'skill','백핸드')">백핸드</div><div class="chip" onclick="tc(this,'skill','발리')">발리</div><div class="chip" onclick="tc(this,'skill','게임운영')">게임운영</div><div class="chip" onclick="tc(this,'skill','복식')">복식</div><div class="chip" onclick="tc(this,'skill','단식')">단식</div>
+    </div>
+    <div class="chip-label">레슨 종류</div>
+    <div class="chip-row" id="lesf">
+      <div class="chip on" onclick="tc(this,'lesson','')">전체</div><div class="chip" onclick="tc(this,'lesson','hitting')">🔵 히팅 레슨</div><div class="chip" onclick="tc(this,'lesson','feed')">🟠 볼피딩 레슨</div>
+    </div>
+    <button class="btn-search" onclick="filterCoaches()">🔍 코치 검색</button>
+  </div>
+  <div class="section-label"><h3>추천 코치</h3><span id="cnt"></span></div>
+  <div class="coaches-list" id="coaches-list"><div class="loading">⏳ 코치 목록 불러오는 중...</div></div>
+</div>
+
+<!-- 코치 등록 -->
+<div id="register-page" class="reg-page">
+
+  <!-- 기본 정보 -->
+  <div class="reg-section">
+    <h3>👤 기본 정보</h3>
+    <div class="form-2col">
+      <div class="form-row"><label>이름 *</label><input type="text" id="r-name" placeholder="홍길동"></div>
+      <div class="form-row"><label>이메일 *</label><input type="email" id="r-email" placeholder="coach@example.com"></div>
+    </div>
+    <div class="form-row"><label>전화번호</label><input type="tel" id="r-phone" placeholder="010-1234-5678"></div>
+    <div class="form-2col">
+      <div class="form-row"><label>광역시/도 *</label>
+        <select id="r-region" onchange="onRegRegionChange()">
+          <option value="">선택</option>
+          <option>서울</option><option>경기도</option><option>인천</option><option>강원도</option><option>경상남도</option><option>경상북도</option><option>충청남도</option><option>충청북도</option><option>전라남도</option><option>전라북도</option><option>제주도</option>
+        </select>
+      </div>
+      <div class="form-row"><label>시/구 *</label>
+        <select id="r-sub" disabled><option value="">광역시/도 먼저 선택</option></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사진 & 영상 -->
+  <div class="reg-section">
+    <h3>📸 사진 & 영상</h3>
+    <div class="sec-desc">프로필 사진과 코칭 영상을 추가하면 더 많은 플레이어가 찾아요!</div>
+    <div class="form-row">
+      <label>프로필 사진</label>
+      <div class="media-tabs">
+        <button class="media-tab on" onclick="switchTab(this,'photo-url')">🔗 URL 입력</button>
+        <button class="media-tab" onclick="switchTab(this,'photo-file')">📁 파일 업로드</button>
+      </div>
+      <div id="photo-url" class="media-panel on">
+        <input type="url" id="r-photo-url" placeholder="https://example.com/photo.jpg" oninput="previewPhotoUrl(this.value)">
+        <div id="photo-url-prev" style="display:none;margin-top:6px"><img id="photo-url-img" src="" style="width:60px;height:60px;border-radius:10px;object-fit:cover;border:1px solid var(--border)"></div>
+      </div>
+      <div id="photo-file" class="media-panel">
+        <div class="upload-box" onclick="document.getElementById('r-photo-file').click()">
+          📷 클릭해서 사진 선택<br><span style="font-size:11px;margin-top:4px;display:block">JPG, PNG (최대 5MB)</span>
+          <input type="file" id="r-photo-file" accept="image/*" onchange="previewPhotoFile(this)">
+        </div>
+        <div id="photo-file-prev" style="display:none;margin-top:6px;display:flex;align-items:center;gap:8px">
+          <img id="photo-file-img" src="" style="width:60px;height:60px;border-radius:10px;object-fit:cover;border:1px solid var(--border)">
+          <button onclick="clearPhotoFile()" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;background:transparent">삭제</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>코칭 영상 링크 (최대 3개)</label>
+      <span class="form-hint">유튜브 또는 인스타그램 링크를 추가해주세요</span>
+      <div id="video-links" style="margin-top:6px">
+        <div class="link-row">
+          <input type="url" placeholder="https://youtube.com/watch?v=... 또는 https://instagram.com/reel/...">
+          <button class="link-add-btn" onclick="addVideoLink()">+ 추가</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>코칭 사진 (최대 3장)</label>
+      <div class="upload-box" onclick="document.getElementById('r-coaching-photos').click()">
+        🖼️ 코칭 현장 사진 선택<br><span style="font-size:11px;margin-top:4px;display:block">여러 장 선택 가능</span>
+        <input type="file" id="r-coaching-photos" accept="image/*" multiple onchange="previewCoachingPhotos(this)">
+      </div>
+      <div id="coaching-photos-preview" class="preview-grid"></div>
+    </div>
+  </div>
+
+  <!-- 경력 -->
+  <div class="reg-section">
+    <h3>🏆 경력</h3>
+    <div class="form-2col">
+      <div class="form-row"><label>선수 경력 (년)</label><input type="number" id="r-pcareer" min="0" placeholder="0"></div>
+      <div class="form-row"><label>코칭 경력 (년) *</label><input type="number" id="r-ccareer" min="0" placeholder="5"></div>
+    </div>
+    <div class="form-row">
+      <label>선수 경력 상세</label>
+      <div class="form-example">
+        <b>✏️ 이렇게 작성해주세요 — 연도 · 소속/대회 · 성과 (최대 3개)</b><br>
+        예) 2018 — 전국대학테니스선수권 — 준우승<br>
+        예) 2016~2020 — OO대학교 테니스부 — 주전 선수<br>
+        예) 2015 — ITF 주니어 — 세계 랭킹 300위
+      </div>
+      <textarea id="r-pbg" rows="3" style="margin-top:6px" placeholder="2018 — 전국대학테니스선수권 — 준우승&#10;2016~2020 — OO대학교 테니스부 — 주전 선수"></textarea>
+    </div>
+    <div class="form-row">
+      <label>코칭 경력 상세</label>
+      <div class="form-example">
+        <b>✏️ 이렇게 작성해주세요 — 연도 · 소속/기관 · 담당 역할 (최대 3개)</b><br>
+        예) 2020~현재 — OO 테니스 아카데미 — 성인반 코치<br>
+        예) 2018 — KTA 코치 자격증 1급 취득<br>
+        예) 2019~2022 — OO구 생활체육 테니스 — 강사
+      </div>
+      <textarea id="r-cbg" rows="3" style="margin-top:6px" placeholder="2020~현재 — OO 테니스 아카데미 — 성인반 코치&#10;2018 — KTA 코치 자격증 1급 취득"></textarea>
+    </div>
+  </div>
+
+  <!-- 전문 분야 -->
+  <div class="reg-section">
+    <h3>⭐ 전문 분야</h3>
+    <div class="chip-label" style="margin-bottom:6px">수준</div>
+    <div class="chip-row" id="r-levels">
+      <div class="chip" onclick="this.classList.toggle('on')">초급</div><div class="chip" onclick="this.classList.toggle('on')">중급</div><div class="chip" onclick="this.classList.toggle('on')">고급</div><div class="chip" onclick="this.classList.toggle('on')">주니어</div><div class="chip" onclick="this.classList.toggle('on')">시니어</div><div class="chip" onclick="this.classList.toggle('on')">그룹레슨</div>
+    </div>
+  </div>
+
+  <!-- 전문 스킬 -->
+  <div class="reg-section">
+    <h3>🎯 전문 스킬</h3>
+    <div class="chip-row" id="r-skills">
+      <div class="chip" onclick="this.classList.toggle('on')">포핸드</div><div class="chip" onclick="this.classList.toggle('on')">백핸드</div><div class="chip" onclick="this.classList.toggle('on')">발리</div><div class="chip" onclick="this.classList.toggle('on')">게임운영</div><div class="chip" onclick="this.classList.toggle('on')">복식</div><div class="chip" onclick="this.classList.toggle('on')">단식</div>
+    </div>
+  </div>
+
+  <!-- 레슨 & 요금 -->
+  <div class="reg-section">
+    <h3>🎾 레슨 종류 및 요금</h3>
+    <div class="lesson-opt" id="opt-hitting" onclick="this.classList.toggle('on')">
+      <div class="lo-t">🔵 히팅 레슨</div>
+      <div class="lo-d">코치와 직접 랠리하며 실전 감각을 키우는 레슨</div>
+      <div class="lesson-price-input" onclick="event.stopPropagation()">
+        <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">시간당 요금</label>
+        <div class="price-input-wrap">
+          <input type="text" id="r-hrate" placeholder="80,000" oninput="formatPrice(this,'r-hrate-disp')" inputmode="numeric">
+          <span class="price-unit">원</span>
+        </div>
+        <div class="price-display" id="r-hrate-disp"></div>
+      </div>
+    </div>
+    <div class="lesson-opt" id="opt-feed" onclick="this.classList.toggle('on')">
+      <div class="lo-t">🟠 볼피딩 레슨</div>
+      <div class="lo-d">코치가 공을 던져주며 자세와 폼을 교정하는 레슨</div>
+      <div class="lesson-price-input" onclick="event.stopPropagation()">
+        <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">시간당 요금</label>
+        <div class="price-input-wrap">
+          <input type="text" id="r-frate" placeholder="60,000" oninput="formatPrice(this,'r-frate-disp')" inputmode="numeric">
+          <span class="price-unit">원</span>
+        </div>
+        <div class="price-display" id="r-frate-disp"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 가능 시간 -->
+  <div class="reg-section">
+    <h3>🕐 레슨 가능 시간</h3>
+    <div class="sec-desc">레슨 가능한 요일과 시간대를 선택해주세요 (복수 선택 가능)</div>
+    <div class="chip-label" style="margin-bottom:6px">요일</div>
+    <div class="day-grid" id="day-select">
+      <button class="day-btn" onclick="this.classList.toggle('on')">월</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">화</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">수</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">목</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">금</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">토</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">일</button>
+    </div>
+    <div class="chip-label" style="margin-bottom:6px">시간대</div>
+    <div class="time-grid" id="time-select">
+      <button class="time-btn" onclick="this.classList.toggle('on')"><span class="t-name">🌅 아침</span><span class="t-range">06:00 ~ 09:00</span></button>
+      <button class="time-btn" onclick="this.classList.toggle('on')"><span class="t-name">☀️ 오전</span><span class="t-range">09:00 ~ 12:00</span></button>
+      <button class="time-btn" onclick="this.classList.toggle('on')"><span class="t-name">🌤️ 오후</span><span class="t-range">12:00 ~ 18:00</span></button>
+      <button class="time-btn" onclick="this.classList.toggle('on')"><span class="t-name">🌙 저녁</span><span class="t-range">18:00 ~ 22:00</span></button>
+    </div>
+  </div>
+
+  <!-- 자기소개 -->
+  <div class="reg-section">
+    <h3>📝 자기소개</h3>
+    <div class="sec-desc">간단하게 한두 줄로 작성해주세요.</div>
+    <div class="intro-hint">💡 예시: "10년 경력 KTA 1급 코치입니다. 초보자부터 대회 준비까지 맞춤 레슨을 제공합니다."</div>
+    <textarea id="r-intro" rows="3" placeholder="간단한 자기소개를 입력해주세요 (100자 내외)" oninput="document.getElementById('intro-cnt').textContent=this.value.length+' / 100자'"></textarea>
+    <span class="form-hint" id="intro-cnt">0 / 100자</span>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" onclick="submitCoach()">✅ 코치 등록 신청</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav-btn active" onclick="showPage('coaches');setNav(this)"><span class="bnav-icon">🏠</span>홈</button>
+  <button class="bnav-btn" onclick="showPage('coaches');setNav(this)"><span class="bnav-icon">🔍</span>검색</button>
+  <button class="bnav-btn" onclick="showPage('register');setNav(this)"><span class="bnav-icon">➕</span>등록</button>
+  <button class="bnav-btn" onclick="alert('로그인 후 이용 가능합니다')"><span class="bnav-icon">👤</span>프로필</button>
+</div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal">
+    <button class="close-btn" onclick="document.getElementById('modal').classList.remove('show')">✕</button>
+    <div class="modal-handle"></div>
+    <div id="mc"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://icawwicosjfbxtfxynto.supabase.co',
+  'sb_publishable_R4kAGdEINHuwh2lvknvCog_BSMTBnmB'
+);
+const subregions={서울:['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구'],경기도:['수원시','성남시','용인시','부천시','안산시','안양시','남양주시','화성시','평택시','의정부시','시흥시','파주시','광명시','김포시','광주시','군포시','하남시','오산시','양주시','이천시','구리시','안성시','포천시','의왕시','여주시','동두천시','과천시'],인천:['계양구','남동구','동구','미추홀구','부평구','서구','연수구','중구','강화군','옹진군'],강원도:['춘천시','원주시','강릉시','동해시','속초시','삼척시','태백시'],경상남도:['창원시','진주시','통영시','사천시','김해시','밀양시','거제시','양산시'],경상북도:['포항시','경주시','구미시','안동시','영주시','영천시'],충청남도:['천안시','아산시','서산시','논산시','공주시','보령시'],충청북도:['청주시','충주시','제천시'],전라남도:['목포시','여수시','순천시','나주시','광양시'],전라북도:['전주시','군산시','익산시','정읍시'],제주도:['제주시','서귀포시']};
+
+let aLevel='',aSkill='',aLesson='',allCoaches=[],curSlide=0,sliderTimer,photoFileData=null,coachingPhotosData=[],videoLinkCount=1;
+
+function formatPrice(input,dispId){
+  const raw=input.value.replace(/[^0-9]/g,'');
+  if(raw){input.value=parseInt(raw).toLocaleString();document.getElementById(dispId).textContent=parseInt(raw).toLocaleString()+'원';}
+  else{input.value='';document.getElementById(dispId).textContent='';}
+}
+function getPriceVal(id){const v=document.getElementById(id).value.replace(/,/g,'');return v?parseInt(v):null;}
+
+function switchTab(btn,panelId){
+  btn.parentElement.querySelectorAll('.media-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  btn.closest('.form-row').querySelectorAll('.media-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById(panelId).classList.add('on');
+}
+
+function previewPhotoUrl(url){
+  const p=document.getElementById('photo-url-prev'),img=document.getElementById('photo-url-img');
+  if(url){img.src=url;p.style.display='block';}else p.style.display='none';
+}
+function previewPhotoFile(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{photoFileData=e.target.result;document.getElementById('photo-file-img').src=e.target.result;document.getElementById('photo-file-prev').style.display='flex';};
+  r.readAsDataURL(file);
+}
+function clearPhotoFile(){photoFileData=null;document.getElementById('r-photo-file').value='';document.getElementById('photo-file-prev').style.display='none';}
+
+function previewCoachingPhotos(input){
+  const files=Array.from(input.files).slice(0,3);
+  const grid=document.getElementById('coaching-photos-preview');
+  grid.innerHTML='';coachingPhotosData=[];
+  files.forEach((file,i)=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      coachingPhotosData[i]=e.target.result;
+      const div=document.createElement('div');div.className='preview-item';
+      div.innerHTML=`<img src="${e.target.result}"><button class="preview-remove" onclick="this.parentElement.remove()">✕</button>`;
+      grid.appendChild(div);
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+function addVideoLink(){
+  if(videoLinkCount>=3){showToast('영상 링크는 최대 3개입니다','error');return;}
+  videoLinkCount++;
+  const div=document.createElement('div');div.className='link-row';
+  div.innerHTML=`<input type="url" placeholder="https://youtube.com/... 또는 https://instagram.com/reel/..."><button class="link-remove-btn" onclick="this.parentElement.remove();videoLinkCount--">삭제</button>`;
+  document.getElementById('video-links').appendChild(div);
+}
+function getVideoLinks(){return[...document.querySelectorAll('#video-links input')].map(i=>i.value.trim()).filter(Boolean);}
+function getSelectedDays(){return[...document.querySelectorAll('#day-select .day-btn.on')].map(b=>b.textContent).join(',');}
+function getSelectedTimes(){return[...document.querySelectorAll('#time-select .time-btn.on')].map(b=>b.querySelector('.t-name').textContent.trim()).join(',');}
+
+async function loadCoaches(){
+  document.getElementById('coaches-list').innerHTML='<div class="loading">⏳ 코치 목록 불러오는 중...</div>';
+  const{data,error}=await sb.from('coaches').select('*').order('rating',{ascending:false});
+  if(error){document.getElementById('coaches-list').innerHTML='<div class="no-results">❌ 불러오기 실패: '+error.message+'</div>';return;}
+  allCoaches=data||[];filterCoaches();
+}
+
+async function submitCoach(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const region=document.getElementById('r-region').value;
+  const ccareer=parseInt(document.getElementById('r-ccareer').value)||0;
+  const hOn=document.getElementById('opt-hitting').classList.contains('on');
+  const fOn=document.getElementById('opt-feed').classList.contains('on');
+  if(!name){showToast('이름을 입력해주세요','error');return;}
+  if(!email){showToast('이메일을 입력해주세요','error');return;}
+  if(!region){showToast('광역시/도를 선택해주세요','error');return;}
+  if(!ccareer){showToast('코칭 경력을 입력해주세요','error');return;}
+  if(!hOn&&!fOn){showToast('레슨 종류를 하나 이상 선택해주세요','error');return;}
+  const days=getSelectedDays(),times=getSelectedTimes();
+  const photoUrl=document.getElementById('r-photo-url').value.trim();
+  const payload={
+    name,email,
+    phone:document.getElementById('r-phone').value.trim(),
+    region,city:document.getElementById('r-sub').value,
+    experience_coach:ccareer,experience_player:parseInt(document.getElementById('r-pcareer').value)||0,
+    coach_background:document.getElementById('r-cbg').value.trim(),
+    player_background:document.getElementById('r-pbg').value.trim(),
+    hitting_rate:hOn?getPriceVal('r-hrate'):null,
+    feed_rate:fOn?getPriceVal('r-frate'):null,
+    lessons:[hOn&&'hitting',fOn&&'feed'].filter(Boolean).join(','),
+    specialties:[...document.querySelectorAll('#r-levels .chip.on')].map(c=>c.textContent).join(','),
+    skills:[...document.querySelectorAll('#r-skills .chip.on')].map(c=>c.textContent).join(','),
+    introduction:document.getElementById('r-intro').value.trim(),
+    available_times:(days&&times)?days+' / '+times:(days||times),
+    profile_image:photoUrl||photoFileData||null,
+    video_links:getVideoLinks().join(','),
+    verification_status:'pending',rating:0,review_count:0
+  };
+  const btn=document.getElementById('btn-submit');
+  btn.disabled=true;btn.textContent='⏳ 저장 중...';
+  const{error}=await sb.from('coaches').insert([payload]);
+  btn.disabled=false;btn.textContent='✅ 코치 등록 신청';
+  if(error){showToast('❌ 저장 실패: '+error.message,'error');return;}
+  showToast('✅ 등록 완료! 검토 후 연락드립니다.','success');
+  showPage('coaches');setNav(document.querySelectorAll('.bnav-btn')[0]);
+  await loadCoaches();
+}
+
+function filterCoaches(){
+  const region=document.getElementById('f-region').value,sub=document.getElementById('f-sub').value,sort=document.getElementById('f-sort').value;
+  let list=allCoaches.filter(c=>{
+    const lv=(c.specialties||'').split(','),sk=(c.skills||'').split(','),le=(c.lessons||'').split(',');
+    return(!region||c.region===region)&&(!sub||c.city===sub)&&(!aLevel||lv.includes(aLevel))&&(!aSkill||sk.includes(aSkill))&&(!aLesson||le.includes(aLesson));
+  });
+  if(sort==='rating')list.sort((a,b)=>(b.rating||0)-(a.rating||0));
+  else if(sort==='exp')list.sort((a,b)=>(b.experience_coach||0)-(a.experience_coach||0));
+  else if(sort==='price-low')list.sort((a,b)=>Math.min(a.hitting_rate||9e9,a.feed_rate||9e9)-Math.min(b.hitting_rate||9e9,b.feed_rate||9e9));
+  else if(sort==='price-high')list.sort((a,b)=>Math.max(b.hitting_rate||0,b.feed_rate||0)-Math.max(a.hitting_rate||0,a.feed_rate||0));
+  renderCoaches(list);
+}
+
+function renderCoaches(list){
+  const el=document.getElementById('coaches-list');
+  document.getElementById('cnt').textContent=list.length+'명';
+  if(!list.length){el.innerHTML='<div class="no-results">조건에 맞는 코치가 없습니다</div>';return;}
+  el.innerHTML=list.map(c=>{
+    const le=(c.lessons||'').split(',').filter(Boolean),lv=(c.specialties||'').split(',').filter(Boolean),sk=(c.skills||'').split(',').filter(Boolean);
+    const pills=le.map(l=>l==='hitting'?`<span class="lp lp-h">🔵 히팅</span>`:`<span class="lp lp-f">🟠 볼피딩</span>`).join('');
+    const lvT=lv.slice(0,2).map(s=>`<span class="spec-tag">${s}</span>`).join('');
+    const skT=sk.slice(0,2).map(s=>`<span class="skill-tag">${s}</span>`).join('');
+    const exp=`코칭 ${c.experience_coach||0}년${c.experience_player>0?' · 선수 '+c.experience_player+'년':''}`;
+    const av=c.profile_image?`<img src="${c.profile_image}" onerror="this.parentElement.innerHTML='${(c.name||'?')[0]}'">`:(c.name||'?')[0];
+    let pr='';
+    if(c.hitting_rate)pr+=`<div class="price-item"><span class="pdot pdot-h"></span><span class="pval">₩${c.hitting_rate.toLocaleString()}</span><span class="plbl"> 히팅</span></div>`;
+    if(c.feed_rate)pr+=`<div class="price-item"><span class="pdot pdot-f"></span><span class="pval">₩${c.feed_rate.toLocaleString()}</span><span class="plbl"> 볼피딩</span></div>`;
+    return`<div class="coach-card" onclick="openModal('${c.id}')">
+      <div class="card-top">
+        <div class="avatar">${av}</div>
+        <div class="coach-info">
+          <div class="coach-name-row"><span class="coach-name">${c.name}</span>${c.verification_status==='verified'?'<span class="verified-badge">✅ 인증</span>':''}</div>
+          <div class="coach-loc">📍 ${c.region||''} ${c.city||''} · ${exp}</div>
+          <div class="rating-row"><span class="stars">${'★'.repeat(Math.round(c.rating||0))}</span><span>${c.rating||0} (${c.review_count||0}개)</span></div>
+          <div class="lesson-pills">${pills}</div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-tags">${lvT}${skT}</div>
+        <div class="price-row">${pr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(id){
+  const c=allCoaches.find(x=>x.id===id);if(!c)return;
+  const le=(c.lessons||'').split(',').filter(Boolean),lv=(c.specialties||'').split(',').filter(Boolean),sk=(c.skills||'').split(',').filter(Boolean);
+  const pills=le.map(l=>l==='hitting'?`<span class="lp lp-h" style="padding:4px 10px;font-size:12px">🔵 히팅 레슨</span>`:`<span class="lp lp-f" style="padding:4px 10px;font-size:12px">🟠 볼피딩 레슨</span>`).join('');
+  let pr='<div class="mprice-box">';
+  if(c.hitting_rate)pr+=`<div class="mprice-row"><span class="mprice-lbl"><span class="pdot pdot-h" style="width:8px;height:8px"></span>히팅 레슨</span><span class="mprice-val">₩${c.hitting_rate.toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--text3)">/시간</span></span></div>`;
+  if(c.feed_rate)pr+=`<div class="mprice-row"><span class="mprice-lbl"><span class="pdot pdot-f" style="width:8px;height:8px"></span>볼피딩 레슨</span><span class="mprice-val">₩${c.feed_rate.toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--text3)">/시간</span></span></div>`;
+  pr+='</div>';
+  const av=c.profile_image?`<img src="${c.profile_image}" style="width:100%;height:100%;object-fit:cover">`:(c.name||'?')[0];
+  const vids=(c.video_links||'').split(',').filter(Boolean);
+  document.getElementById('mc').innerHTML=`
+    <div class="modal-avatar">${av}</div>
+    <div class="modal-name">${c.name} ${c.verification_status==='verified'?'✅':''}</div>
+    <div class="modal-loc">📍 ${c.region||''} ${c.city||''}</div>
+    <div class="modal-stats">
+      <div class="mstat"><div class="n">${c.rating||0}</div><div class="l">평점</div></div>
+      <div class="mstat"><div class="n">${c.experience_coach||0}년</div><div class="l">코칭경력</div></div>
+      <div class="mstat"><div class="n">${c.experience_player>0?c.experience_player+'년':'—'}</div><div class="l">선수경력</div></div>
+    </div>
+    ${lv.length?`<div class="msec"><h4>전문 분야</h4><div class="tag-row">${lv.map(s=>`<span class="spec-tag" style="padding:4px 10px;font-size:12px">${s}</span>`).join('')}</div></div><div class="divider"></div>`:''}
+    ${sk.length?`<div class="msec"><h4>전문 스킬</h4><div class="tag-row">${sk.map(s=>`<span class="skill-tag" style="padding:4px 10px;font-size:12px">${s}</span>`).join('')}</div></div><div class="divider"></div>`:''}
+    <div class="msec"><h4>레슨 종류</h4><div class="tag-row">${pills}</div></div>
+    <div class="divider"></div>
+    <div class="msec"><h4>요금</h4>${pr}</div>
+    ${c.available_times?`<div class="divider"></div><div class="msec"><h4>레슨 가능 시간</h4><p>${c.available_times}</p></div>`:''}
+    ${c.player_background||c.coach_background?`<div class="divider"></div>${c.player_background?`<div class="msec"><h4>선수 경력</h4><p style="white-space:pre-line">${c.player_background}</p></div>`:''} ${c.coach_background?`<div class="msec"><h4>코칭 경력</h4><p style="white-space:pre-line">${c.coach_background}</p></div>`:''}`:''}
+    ${c.introduction?`<div class="divider"></div><div class="msec"><h4>소개</h4><p style="line-height:1.6">${c.introduction}</p></div>`:''}
+    ${vids.length?`<div class="divider"></div><div class="msec"><h4>코칭 영상</h4>${vids.map(v=>`<a href="${v}" target="_blank">▶ ${v.includes('instagram')?'인스타그램':'유튜브'} 영상 보기 →</a>`).join('')}</div>`:''}
+    <button class="btn-book" onclick="alert('예약 기능은 곧 오픈됩니다! 🎾')">📅 레슨 예약하기</button>`;
+  document.getElementById('modal').classList.add('show');
+}
+
+function tc(el,g,v){const m={level:'lf',skill:'sf',lesson:'lesf'};document.querySelectorAll('#'+m[g]+' .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');if(g==='level')aLevel=v;else if(g==='skill')aSkill=v;else aLesson=v;filterCoaches();}
+function onRegionChange(){const r=document.getElementById('f-region').value,s=document.getElementById('f-sub');s.innerHTML='<option value="">전체</option>';if(r&&subregions[r]){s.disabled=false;subregions[r].forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;s.appendChild(o);});}else s.disabled=true;filterCoaches();}
+function onRegRegionChange(){const r=document.getElementById('r-region').value,s=document.getElementById('r-sub');s.innerHTML='<option value="">선택</option>';if(r&&subregions[r]){s.disabled=false;subregions[r].forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;s.appendChild(o);});}else s.disabled=true;}
+function showPage(p){document.getElementById('coaches-page').style.display=p==='coaches'?'block':'none';document.getElementById('register-page').className='reg-page'+(p==='register'?' show':'');}
+function setNav(btn){document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function setLang(l,btn){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',3000);}
+function goSlide(n){curSlide=n;document.getElementById('bt').style.transform=`translateX(-${n*100}%)`;document.querySelectorAll('.banner-dot').forEach((d,i)=>d.classList.toggle('on',i===n));}
+function startSlider(){sliderTimer=setInterval(()=>goSlide((curSlide+1)%4),3500);}
+function stopSlider(){clearInterval(sliderTimer);}
+document.querySelector('.banner-slider').addEventListener('mouseenter',stopSlider);
+document.querySelector('.banner-slider').addEventListener('mouseleave',startSlider);
+startSlider();
+loadCoaches();
+</script>
+</body>
+</html>
