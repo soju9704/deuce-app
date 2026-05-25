@@ -231,9 +231,9 @@ body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--sand);colo
     <div class="logo-icon">🎾</div>
     <span class="logo-text">Deuce</span>
   </div>
-  <div class="nav">
-    <button class="nav-btn active" onclick="showPage('coaches');setNav(this)">찾기</button>
-    <button class="nav-btn" onclick="showPage('register');setNav(this)">코치등록</button>
+  <div class="nav" id="top-nav">
+    <button class="nav-btn active" onclick="showPage('coaches');setTopNav(this);setBottomNav(0)">찾기</button>
+    <button class="nav-btn" onclick="showPage('register');setTopNav(this);setBottomNav(2)">코치등록</button>
   </div>
   <div class="lang-row">
     <button class="lang-btn" onclick="setLang('en',this)">EN</button>
@@ -483,9 +483,26 @@ body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--sand);colo
     </div>
     <div class="reg-section">
       <h3>📝 자기소개</h3>
-      <div class="intro-hint">💡 예시: "10년 경력 KTA 1급 코치입니다. 초보자부터 대회 준비까지 맞춤 레슨을 제공합니다."</div>
-      <textarea id="r-intro" rows="3" placeholder="간단한 자기소개 (100자 내외)" oninput="document.getElementById('intro-cnt').textContent=this.value.length+' / 100자'"></textarea>
-      <span class="form-hint" id="intro-cnt">0 / 100자</span>
+      <div class="sec-desc">플레이어에게 보여지는 첫인상입니다. 간결하고 매력적으로 써주세요!</div>
+      <div style="background:var(--gl);border-radius:10px;padding:12px 14px;margin-bottom:10px;border:1px solid rgba(26,107,74,.15)">
+        <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:8px;letter-spacing:.04em">✏️ 예시 (클릭하면 자동 입력)</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div onclick="fillIntro(this)" style="background:#fff;border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text2);cursor:pointer;border:1px solid var(--border);line-height:1.5;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+            "대학 테니스부 출신 KTA 1급 코치입니다. 초보부터 대회 준비까지 맞춤 레슨을 제공합니다. 첫 레슨 후 만족 못 하시면 환불해드립니다!"
+          </div>
+          <div onclick="fillIntro(this)" style="background:#fff;border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text2);cursor:pointer;border:1px solid var(--border);line-height:1.5;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+            "실업팀 출신 10년 경력 코치입니다. 포핸드·백핸드 자세 교정 전문이며, 주말 야외 레슨 가능합니다."
+          </div>
+          <div onclick="fillIntro(this)" style="background:#fff;border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text2);cursor:pointer;border:1px solid var(--border);line-height:1.5;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+            "여성 전문 코치로 입문자·시니어 레슨 다수 경험이 있습니다. 친절하고 체계적인 레슨을 약속드립니다."
+          </div>
+        </div>
+      </div>
+      <textarea id="r-intro" rows="3" placeholder="자기소개를 직접 입력하거나 위 예시를 클릭하세요 (100자 내외)" oninput="updateIntroCount()"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span style="font-size:10px;color:var(--text3)">플레이어가 코치를 선택할 때 가장 많이 읽는 부분이에요</span>
+        <span class="form-hint" id="intro-cnt" style="margin:0">0 / 100자</span>
+      </div>
     </div>
     <div class="step-nav">
       <button class="btn-prev" onclick="goStep(4)">← 이전</button>
@@ -507,9 +524,9 @@ body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--sand);colo
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <button class="bnav-btn active" onclick="showPage('coaches');setNav(this)"><span class="bnav-icon">🏠</span>홈</button>
-  <button class="bnav-btn" onclick="showPage('coaches');setNav(this)"><span class="bnav-icon">🔍</span>검색</button>
-  <button class="bnav-btn" onclick="showPage('register');setNav(this)"><span class="bnav-icon">➕</span>등록</button>
+  <button class="bnav-btn active" onclick="showPage('coaches');setBottomNav(0);setTopNav(document.querySelectorAll('#top-nav .nav-btn')[0])"><span class="bnav-icon">🏠</span>홈</button>
+  <button class="bnav-btn" onclick="showPage('coaches');setBottomNav(1);setTopNav(document.querySelectorAll('#top-nav .nav-btn')[0])"><span class="bnav-icon">🔍</span>검색</button>
+  <button class="bnav-btn" onclick="showPage('register');setBottomNav(2);setTopNav(document.querySelectorAll('#top-nav .nav-btn')[1])"><span class="bnav-icon">➕</span>등록</button>
   <button class="bnav-btn" onclick="alert('로그인 후 이용 가능합니다')"><span class="bnav-icon">👤</span>프로필</button>
 </div>
 
@@ -581,13 +598,17 @@ function formatPrice(input,dispId){
     if(val<50000){
       disp.textContent='⚠️ 최소 50,000원 이상 입력해주세요';
       disp.style.color='#c0392b';
+      input.style.borderColor='#c0392b';
     } else {
-      disp.textContent=val.toLocaleString()+'원';
+      disp.textContent='✅ '+val.toLocaleString()+'원';
       disp.style.color='var(--green)';
+      input.style.borderColor='var(--green)';
     }
   } else {
     input.value='';
-    document.getElementById(dispId).textContent='';
+    const disp=document.getElementById(dispId);
+    disp.textContent='';
+    input.style.borderColor='';
   }
 }
 function getPriceVal(id){const v=document.getElementById(id).value.replace(/,/g,'');return v?parseInt(v):null;}
@@ -766,9 +787,13 @@ function tc(el,g,v){const m={level:'lf',skill:'sf',lesson:'lesf'};document.query
 function onRegionChange(){const r=document.getElementById('f-region').value,s=document.getElementById('f-sub');s.innerHTML='<option value="">전체</option>';if(r&&subregions[r]){s.disabled=false;subregions[r].forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;s.appendChild(o);});}else s.disabled=true;filterCoaches();}
 function onRegRegionChange(){const r=document.getElementById('r-region').value,s=document.getElementById('r-sub');s.innerHTML='<option value="">선택</option>';if(r&&subregions[r]){s.disabled=false;subregions[r].forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;s.appendChild(o);});}else s.disabled=true;}
 function showPage(p){document.getElementById('coaches-page').style.display=p==='coaches'?'block':'none';document.getElementById('register-page').className='reg-page'+(p==='register'?' show':'');if(p==='register')resetForm();}
+function setTopNav(btn){document.querySelectorAll('#top-nav .nav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function setBottomNav(idx){document.querySelectorAll('.bnav-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));}
 function setNav(btn){document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
 function setLang(l,btn){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
 function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',3000);}
+function fillIntro(el){const ta=document.getElementById('r-intro');ta.value=el.textContent.trim().replace(/^"|"$/g,'');updateIntroCount();}
+function updateIntroCount(){const ta=document.getElementById('r-intro');const cnt=document.getElementById('intro-cnt');if(!ta||!cnt)return;const len=ta.value.length;cnt.textContent=len+' / 100자';cnt.style.color=len>100?'#c0392b':'var(--text3)';}
 function goSlide(n){curSlide=n;document.getElementById('bt').style.transform=`translateX(-${n*100}%)`;document.querySelectorAll('.banner-dot').forEach((d,i)=>d.classList.toggle('on',i===n));}
 function startSlider(){sliderTimer=setInterval(()=>goSlide((curSlide+1)%4),3500);}
 function stopSlider(){clearInterval(sliderTimer);}
