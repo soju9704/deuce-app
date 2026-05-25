@@ -574,10 +574,24 @@ function resetForm(){
 // ── 가격 포맷 ──
 function formatPrice(input,dispId){
   const raw=input.value.replace(/[^0-9]/g,'');
-  if(raw){input.value=parseInt(raw).toLocaleString();document.getElementById(dispId).textContent=parseInt(raw).toLocaleString()+'원';}
-  else{input.value='';document.getElementById(dispId).textContent='';}
+  if(raw){
+    const val=parseInt(raw);
+    input.value=val.toLocaleString();
+    const disp=document.getElementById(dispId);
+    if(val<50000){
+      disp.textContent='⚠️ 최소 50,000원 이상 입력해주세요';
+      disp.style.color='#c0392b';
+    } else {
+      disp.textContent=val.toLocaleString()+'원';
+      disp.style.color='var(--green)';
+    }
+  } else {
+    input.value='';
+    document.getElementById(dispId).textContent='';
+  }
 }
 function getPriceVal(id){const v=document.getElementById(id).value.replace(/,/g,'');return v?parseInt(v):null;}
+function validatePrice(id){const v=getPriceVal(id);return v===null||v>=50000;}
 
 // ── 미디어 ──
 function switchTab(btn,panelId){
@@ -632,6 +646,10 @@ async function submitCoach(){
     showToast('이미 등록된 이메일입니다','error');
     btn.disabled=false;btn.textContent='✅ 등록 신청';return;
   }
+
+  // 레슨비 최솟값 검증 (5만원 이상)
+  if(hOn&&!validatePrice('r-hrate')){showToast('히팅 레슨비는 최소 50,000원 이상이어야 합니다','error');btn.disabled=false;btn.textContent='✅ 등록 신청';return;}
+  if(fOn&&!validatePrice('r-frate')){showToast('볼피딩 레슨비는 최소 50,000원 이상이어야 합니다','error');btn.disabled=false;btn.textContent='✅ 등록 신청';return;}
 
   const days=getSelectedDays(),times=getSelectedTimes();
   const photoUrl=document.getElementById('r-photo-url').value.trim();
