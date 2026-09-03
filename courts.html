@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deuce — 공공 테니스장 찾기</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#1a6b4a;--gl:#e8f5ee;--sand:#f5f0e8;--text:#1a1a1a;--text2:#555;--text3:#888;--white:#fff;--border:#e0d8cc;--r:16px;--rs:10px;--shadow:0 2px 12px rgba(0,0,0,.07)}
+body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--sand);color:var(--text);min-height:100vh;font-size:14px}
+
+/* HEADER */
+.header{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-icon{width:32px;height:32px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-family:'DM Serif Display',serif;font-size:20px;color:var(--green)}
+.back-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-family:inherit;font-size:12px;cursor:pointer;background:transparent;color:var(--text2);text-decoration:none;display:flex;align-items:center;gap:4px}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1a6b4a,#2d9062);padding:24px 16px 20px;color:#fff;margin-bottom:0}
+.hero-title{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
+.hero-sub{font-size:13px;opacity:.85;line-height:1.6;margin-bottom:16px}
+.hero-source{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-size:11px;color:#fff;text-decoration:none}
+
+/* 필터 */
+.filter-wrap{background:var(--white);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:2px;position:sticky;top:54px;z-index:90}
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.filter-chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;cursor:pointer;background:var(--white);color:var(--text2);white-space:nowrap;font-family:inherit;font-weight:500;flex-shrink:0;transition:all .15s}
+.filter-chip.on{background:var(--green);color:#fff;border-color:var(--green)}
+.search-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;background:var(--sand);outline:none;margin-bottom:10px}
+.search-input:focus{border-color:var(--green);background:var(--white)}
+.result-count{font-size:11px;color:var(--text3);padding:8px 16px;font-weight:500}
+
+/* 카드 */
+.courts-list{padding:10px 14px;display:flex;flex-direction:column;gap:10px;margin-bottom:80px}
+.court-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.card-top{padding:14px 16px}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.court-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+.court-gu{font-size:11px;color:var(--green);font-weight:600;background:var(--gl);padding:2px 8px;border-radius:8px}
+.court-meta{display:flex;flex-direction:column;gap:4px}
+.meta-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.meta-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.tag-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.tag{padding:3px 9px;border-radius:8px;font-size:10px;font-weight:600}
+.tag-outdoor{background:#e8f5ee;color:#1a6b4a}
+.tag-indoor{background:#e8f0fe;color:#3b5bdb}
+.tag-clay{background:#fff3e0;color:#e65100}
+.tag-hard{background:#f3e5f5;color:#7b1fa2}
+.tag-free{background:#e0f2f1;color:#00695c}
+.card-bottom{padding:10px 16px;border-top:1px solid var(--border);background:var(--sand);display:flex;gap:8px}
+.btn-reserve{flex:2;padding:9px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 2px 6px rgba(26,107,74,.25)}
+.btn-map{flex:1;padding:9px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;color:var(--text2)}
+
+/* 안내 배너 */
+.info-banner{margin:12px 14px 0;background:var(--gl);border-radius:var(--r);padding:12px 14px;border:1px solid rgba(26,107,74,.2);font-size:12px;color:var(--text2);line-height:1.7}
+.info-banner b{color:var(--green)}
+
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;padding:8px 0 14px;box-shadow:0 -2px 12px rgba(0,0,0,.05)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:10px;color:var(--text3);padding:4px 0;font-weight:500;text-decoration:none}
+.bnav-btn.active{color:var(--green)}
+.bnav-icon{font-size:20px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="logo">
+    <div class="logo-icon">🎾</div>
+    <span class="logo-text">Deuce</span>
+  </a>
+  <a href="index.html" class="back-btn">← 코치 찾기</a>
+</div>
+
+<div class="hero">
+  <div class="hero-title">🏟️ 공공 테니스장 찾기</div>
+  <div class="hero-sub">서울 공공 테니스장 정보를 한눈에!<br>예약은 각 기관 사이트에서 진행됩니다.</div>
+  <a href="https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205" target="_blank" class="hero-source">
+    🔗 서울시 공공서비스예약 바로가기
+  </a>
+</div>
+
+<div class="info-banner">
+  💡 <b>예약 팁:</b> 서울시 공공 테니스장은 대부분 <b>서울특별시 공공서비스예약(yeyak.seoul.go.kr)</b>에서 예약 가능합니다. 일부 테니스장은 구청 또는 공원 사이트에서 별도 예약합니다.
+</div>
+
+<div class="filter-wrap">
+  <input type="text" class="search-input" id="search-input" placeholder="🔍 테니스장 이름, 지역으로 검색..." oninput="renderCourts()">
+  <div class="filter-row" id="filter-row">
+    <button class="filter-chip on" onclick="setFilter(this,'')">전체</button>
+    <button class="filter-chip" onclick="setFilter(this,'강남')">강남</button>
+    <button class="filter-chip" onclick="setFilter(this,'강북')">강북</button>
+    <button class="filter-chip" onclick="setFilter(this,'강서')">강서</button>
+    <button class="filter-chip" onclick="setFilter(this,'강동')">강동</button>
+    <button class="filter-chip" onclick="setFilter(this,'중심')">중심부</button>
+    <button class="filter-chip" onclick="setFilter(this,'야외')">🌳 야외</button>
+    <button class="filter-chip" onclick="setFilter(this,'실내')">🏠 실내</button>
+  </div>
+</div>
+
+<div class="result-count" id="result-count">전체 0개</div>
+
+<div class="courts-list" id="courts-list"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a href="index.html" class="bnav-btn"><span class="bnav-icon">🏠</span>홈</a>
+  <a href="index.html" class="bnav-btn"><span class="bnav-icon">👨‍🏫</span>코치</a>
+  <a href="courts.html" class="bnav-btn active"><span class="bnav-icon">🏟️</span>코트</a>
+  <a href="#" class="bnav-btn" onclick="alert('로그인 후 이용 가능합니다')"><span class="bnav-icon">👤</span>프로필</a>
+</div>
+
+<script>
+const courts = [
+  // 강남권
+  { name:"보라매공원 테니스장", gu:"동작구", area:"강북", addr:"서울 동작구 신대방동 722", type:["야외"], surface:["클레이"], courts:10, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S201030145802586611", mapUrl:"https://map.kakao.com/link/search/보라매공원 테니스장" },
+  { name:"올림픽공원 테니스장", gu:"송파구", area:"강동", addr:"서울 송파구 올림픽로 424", type:["야외"], surface:["하드"], courts:12, hours:"06:00~21:00", fee:"유료", reserveUrl:"https://www.ksponco.or.kr/online/tennis/index.do", mapUrl:"https://map.kakao.com/link/search/올림픽공원 테니스장" },
+  { name:"오금공원 테니스장", gu:"송파구", area:"강동", addr:"서울 송파구 오금동", type:["야외"], surface:["클레이"], courts:8, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/reservation/selectReservView.do?rsv_svc_id=S251017163248461228", mapUrl:"https://map.kakao.com/link/search/오금공원 테니스장" },
+  { name:"여의도공원 테니스장", gu:"영등포구", area:"강서", addr:"서울 영등포구 여의도동 35-5", type:["야외"], surface:["클레이"], courts:7, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/여의도공원 테니스장" },
+  { name:"장충테니스장", gu:"중구", area:"중심", addr:"서울 중구 장충동2가 산14-68", type:["야외"], surface:["클레이"], courts:6, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/장충테니스장" },
+  { name:"어린이대공원 테니스장", gu:"광진구", area:"강동", addr:"서울 광진구 능동로 216", type:["야외","실내"], surface:["클레이"], courts:3, hours:"09:00~21:00", fee:"유료", reserveUrl:"https://www.sisul.or.kr/open_content/childrenpark/guidance/facility/rent_tennis.jsp", mapUrl:"https://map.kakao.com/link/search/어린이대공원 테니스장" },
+  { name:"강남구 테니스장 (대치)", gu:"강남구", area:"강남", addr:"서울 강남구 대치동", type:["야외"], surface:["클레이"], courts:6, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/강남구 대치 테니스장" },
+  { name:"역삼 테니스장", gu:"강남구", area:"강남", addr:"서울 강남구 역삼동", type:["야외"], surface:["클레이"], courts:5, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/역삼 테니스장" },
+  { name:"서초구 테니스장 (내곡)", gu:"서초구", area:"강남", addr:"서울 서초구 내곡동 1-279", type:["야외"], surface:["클레이"], courts:8, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/내곡 테니스장 서초" },
+  { name:"노원 중계 테니스장", gu:"노원구", area:"강북", addr:"서울 노원구 중계동 358-6", type:["실내"], surface:["하드"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/중계 테니스장 노원" },
+  { name:"마포구 테니스장", gu:"마포구", area:"강북", addr:"서울 마포구", type:["야외"], surface:["클레이"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/마포구 테니스장" },
+  { name:"은평구 테니스장", gu:"은평구", area:"강북", addr:"서울 은평구", type:["야외"], surface:["클레이"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/은평구 테니스장" },
+  { name:"강서구 테니스장", gu:"강서구", area:"강서", addr:"서울 강서구", type:["야외"], surface:["클레이"], courts:5, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/강서구 테니스장" },
+  { name:"구로구 테니스장 (개봉)", gu:"구로구", area:"강서", addr:"서울 구로구 개봉동 478", type:["실내"], surface:["하드"], courts:3, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/개봉 테니스장 구로" },
+  { name:"성북구 테니스장", gu:"성북구", area:"강북", addr:"서울 성북구", type:["야외"], surface:["클레이"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/성북구 테니스장" },
+  { name:"도봉구 테니스장", gu:"도봉구", area:"강북", addr:"서울 도봉구", type:["야외"], surface:["클레이"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/도봉구 테니스장" },
+  { name:"강동구 테니스장 (강일)", gu:"강동구", area:"강동", addr:"서울 강동구 강일동 155-8", type:["야외"], surface:["클레이"], courts:5, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/강일 테니스장 강동" },
+  { name:"동대문구 테니스장", gu:"동대문구", area:"중심", addr:"서울 동대문구", type:["야외"], surface:["클레이"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/동대문구 테니스장" },
+  { name:"용산구 테니스장 (스포원)", gu:"용산구", area:"중심", addr:"서울 용산구 한강로1가 292-3", type:["실내"], surface:["하드"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/스포원 테니스 용산" },
+  { name:"관악구 테니스장", gu:"관악구", area:"강남", addr:"서울 관악구", type:["야외"], surface:["클레이"], courts:4, hours:"06:00~22:00", fee:"유료", reserveUrl:"https://yeyak.seoul.go.kr/web/search/selectPageListDetailSearchImg.do?code=T200&dCode=T205", mapUrl:"https://map.kakao.com/link/search/관악구 테니스장" },
+];
+
+let currentFilter = '';
+
+function setFilter(btn, val) {
+  document.querySelectorAll('#filter-row .filter-chip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+  currentFilter = val;
+  renderCourts();
+}
+
+function renderCourts() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let list = courts.filter(c => {
+    const matchFilter = !currentFilter ||
+      (currentFilter === '야외' && c.type.includes('야외')) ||
+      (currentFilter === '실내' && c.type.includes('실내')) ||
+      c.area === currentFilter || c.gu.includes(currentFilter);
+    const matchSearch = !q || c.name.includes(q) || c.gu.includes(q) || c.addr.includes(q);
+    return matchFilter && matchSearch;
+  });
+
+  document.getElementById('result-count').textContent = `전체 ${list.length}개`;
+
+  if (!list.length) {
+    document.getElementById('courts-list').innerHTML = '<div class="empty">조건에 맞는 테니스장이 없습니다</div>';
+    return;
+  }
+
+  document.getElementById('courts-list').innerHTML = list.map(c => {
+    const typeTags = c.type.map(t => `<span class="tag ${t==='야외'?'tag-outdoor':'tag-indoor'}">${t==='야외'?'🌳':'🏠'} ${t}</span>`).join('');
+    const surfaceTags = c.surface.map(s => `<span class="tag ${s==='클레이'?'tag-clay':'tag-hard'}">${s}</span>`).join('');
+    return `<div class="court-card">
+      <div class="card-top">
+        <div class="card-header">
+          <div>
+            <div class="court-name">${c.name}</div>
+            <span class="court-gu">${c.gu}</span>
+          </div>
+          <div style="font-size:20px">🏟️</div>
+        </div>
+        <div class="court-meta">
+          <div class="meta-row"><span class="meta-icon">📍</span>${c.addr}</div>
+          <div class="meta-row"><span class="meta-icon">⏰</span>${c.hours}</div>
+          <div class="meta-row"><span class="meta-icon">🎾</span>코트 ${c.courts}면</div>
+        </div>
+        <div class="tag-row">${typeTags}${surfaceTags}<span class="tag tag-free">💰 ${c.fee}</span></div>
+      </div>
+      <div class="card-bottom">
+        <a href="${c.reserveUrl}" target="_blank" class="btn-reserve">📅 예약하기</a>
+        <a href="${c.mapUrl}" target="_blank" class="btn-map">🗺️ 지도</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderCourts();
+</script>
+</body>
+</html>
